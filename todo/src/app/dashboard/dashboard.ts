@@ -14,6 +14,11 @@ export class Dashboard implements OnInit {
   tasks: any[] = [];
   newTaskTitle = '';
   newTaskDescription = '';
+  newTaskPriority = 'medium';
+  newTaskCategory = 'General';
+  newTaskDueDate = '';
+  searchQuery = '';
+  sortBy = 'createdAt';
 
   isLoading = true;
   error = '';
@@ -51,7 +56,10 @@ export class Dashboard implements OnInit {
 
     const task = {
       title: this.newTaskTitle,
-      description: this.newTaskDescription
+      description: this.newTaskDescription,
+      priority: this.newTaskPriority,
+      category: this.newTaskCategory,
+      dueDate: this.newTaskDueDate || null
     };
 
     this.taskService.createTask(task).subscribe({
@@ -59,6 +67,9 @@ export class Dashboard implements OnInit {
         this.tasks.unshift(newTask);
         this.newTaskTitle = '';
         this.newTaskDescription = '';
+        this.newTaskPriority = 'medium';
+        this.newTaskCategory = 'General';
+        this.newTaskDueDate = '';
       },
       error: (err) => {
         this.error = 'Failed to add task.';
@@ -99,11 +110,79 @@ export class Dashboard implements OnInit {
     });
   }
 
+  // Editing state
+  editingTaskId: string | null = null;
+  editTaskData: any = {};
+
+  startEdit(task: any) {
+    this.editingTaskId = task._id;
+    this.editTaskData = { ...task };
+    if (this.editTaskData.dueDate) {
+      this.editTaskData.dueDate = new Date(this.editTaskData.dueDate).toISOString().split('T')[0];
+    }
+  }
+
+  saveEdit(task: any) {
+    const previousTask = { ...task };
+    Object.assign(task, this.editTaskData);
+    this.editingTaskId = null;
+
+    this.taskService.updateTask(task._id, this.editTaskData).subscribe({
+      error: (err) => {
+        Object.assign(task, previousTask);
+        this.error = 'Failed to update task.';
+        console.error(err);
+      }
+    });
+  }
+
+  cancelEdit() {
+    this.editingTaskId = null;
+  }
+
+  get filteredAndSortedTasks() {
+    let filtered = this.tasks;
+
+    // 1. Apply status filter
+    if (this.currentFilter === 'pending') {
+      filtered = filtered.filter(t => t.status !== 'completed');
+    } else if (this.currentFilter === 'completed') {
+      filtered = filtered.filter(t => t.status === 'completed');
+    }
+
+    // 2. Apply search query
+    if (this.searchQuery.trim()) {
+      const q = this.searchQuery.toLowerCase();
+      filtered = filtered.filter(t => 
+        t.title.toLowerCase().includes(q) || 
+        (t.description && t.description.toLowerCase().includes(q)) ||
+        (t.category && t.category.toLowerCase().includes(q))
+      );
+    }
+
+    // 3. Apply sorting
+    filtered = filtered.sort((a, b) => {
+      if (this.sortBy === 'dueDate') {
+        if (!a.dueDate) return 1;
+        if (!b.dueDate) return -1;
+        return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+      } else if (this.sortBy === 'priority') {
+        const pMap: any = { 'high': 3, 'medium': 2, 'low': 1 };
+        return (pMap[b.priority] || 0) - (pMap[a.priority] || 0);
+      } else {
+        // Default: createdAt descending
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      }
+    });
+
+    return filtered;
+  }
+
   get pendingTasks() {
-    return this.tasks.filter(t => t.status !== 'completed');
+    return this.filteredAndSortedTasks.filter(t => t.status !== 'completed');
   }
 
   get completedTasks() {
-    return this.tasks.filter(t => t.status === 'completed');
+    return this.filteredAndSortedTasks.filter(t => t.status === 'completed');
   }
 }

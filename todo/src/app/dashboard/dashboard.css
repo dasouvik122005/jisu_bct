@@ -376,3 +376,131 @@
     .main-content { padding: 20px; }
     .new-task-card { padding: 20px; }
 }
+
+/* Professional Features Styling */
+
+.advanced-inputs {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+.flex-1 { flex: 1; min-width: 120px; }
+.flex-2 { flex: 2; min-width: 200px; }
+
+.brutalist-select {
+    padding: 10px;
+    border: var(--border-width) solid var(--border-color);
+    background: var(--bg-primary);
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    box-shadow: 2px 2px 0px var(--border-color);
+}
+.brutalist-select:focus {
+    outline: none;
+    box-shadow: 4px 4px 0px var(--primary-color);
+}
+
+.search-bar {
+    display: flex;
+    align-items: center;
+    position: relative;
+    max-width: 300px;
+    flex: 1;
+}
+.search-bar svg {
+    position: absolute;
+    left: 10px;
+    color: var(--text-secondary);
+}
+.search-input {
+    padding-left: 40px !important;
+    width: 100%;
+}
+
+.sidebar-sort {
+    margin-top: auto;
+    padding-top: 20px;
+    border-top: var(--border-width) solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.sidebar-sort label {
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.task-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.task-badges {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.badge {
+    padding: 2px 8px;
+    border: 2px solid var(--border-color);
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    box-shadow: 2px 2px 0px var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.badge-priority.high { background: #ff4757; color: white; }
+.badge-priority.medium { background: #ffa502; color: white; }
+.badge-priority.low { background: #2ed573; color: white; }
+.badge-category { background: var(--secondary-color); }
+.badge-date { background: #eee; }
+
+.icon-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    border: 2px solid transparent;
+    transition: all 0.1s;
+}
+.icon-btn:hover {
+    border-color: var(--border-color);
+    background: var(--bg-primary);
+    box-shadow: 2px 2px 0px var(--border-color);
+}
+.icon-btn.edit-btn:hover {
+    color: var(--primary-color);
+}
+.icon-btn.delete-btn:hover {
+    color: var(--danger-color);
+}
+
+.edit-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+}
+.edit-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.edit-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+.btn-sm {
+    padding: 8px 16px;
+    font-size: 0.9rem;
+}

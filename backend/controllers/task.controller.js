@@ -17,15 +17,18 @@ const getTasks = async (req, res) => {
 // @access  Private
 const createTask = async (req, res) => {
     try {
-        const { title, description } = req.body;
+        const { title, description, priority, category, dueDate } = req.body;
         
         if (!title) {
-            return res.status(400).json({ message: 'Please add a text field' });
+            return res.status(400).json({ message: 'Please add a title' });
         }
 
         const task = await Task.create({
             title,
             description,
+            priority: priority || 'medium',
+            category: category || 'General',
+            dueDate: dueDate || null,
             user: req.userId
         });
 

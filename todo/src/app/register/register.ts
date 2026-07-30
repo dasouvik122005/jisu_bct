@@ -21,8 +21,41 @@ export class Register {
 
   errorMessage = '';
   successMessage = '';
+  passwordStrength = 0;
+  strengthLabel = '';
+  strengthColor = '';
 
   constructor(private http: HttpClient, private router: Router) {}
+
+  checkPasswordStrength() {
+    const p = this.user.password;
+    if (!p) {
+      this.passwordStrength = 0;
+      this.strengthLabel = '';
+      this.strengthColor = '';
+      return;
+    }
+
+    let score = 0;
+    if (p.length > 5) score += 20;
+    if (p.length > 7) score += 20;
+    if (/[A-Z]/.test(p)) score += 20;
+    if (/[0-9]/.test(p)) score += 20;
+    if (/[^A-Za-z0-9]/.test(p)) score += 20;
+    
+    this.passwordStrength = score;
+
+    if (score < 40) {
+      this.strengthLabel = 'Weak';
+      this.strengthColor = 'var(--danger-color, #ff4757)';
+    } else if (score < 80) {
+      this.strengthLabel = 'Medium';
+      this.strengthColor = 'var(--warning-color, #ffa502)';
+    } else {
+      this.strengthLabel = 'Strong';
+      this.strengthColor = 'var(--success-color, #2ed573)';
+    }
+  }
 
   register() {
     if (!this.user.terms) {

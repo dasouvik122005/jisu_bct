@@ -33,6 +33,7 @@ export class Login {
         },
         error: (err) => {
           this.errorMessage = err.error?.message || 'Login failed';
+          alert(this.errorMessage);
         }
       });
   }
