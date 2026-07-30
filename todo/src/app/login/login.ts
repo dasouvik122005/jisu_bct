@@ -4,6 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Auth } from '../services/auth';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-login',
@@ -24,7 +25,7 @@ export class Login {
   login() {
     this.errorMessage = '';
     
-    this.http.post('http://localhost:5000/api/auth/login', this.credentials)
+    this.http.post(`${environment.apiUrl}/auth/login`, this.credentials)
       .subscribe({
         next: (res: any) => {
           this.authService.login(res.token);

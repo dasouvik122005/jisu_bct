@@ -3,6 +3,7 @@ import { RouterLink, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-register',
@@ -32,7 +33,7 @@ export class Register {
     this.errorMessage = '';
     this.successMessage = '';
     
-    this.http.post('http://localhost:5000/api/auth/register', this.user)
+    this.http.post(`${environment.apiUrl}/auth/register`, this.user)
       .subscribe({
         next: (res: any) => {
           this.successMessage = 'Registration successful! Redirecting to login...';
