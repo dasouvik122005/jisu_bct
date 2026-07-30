@@ -1,0 +1,96 @@
+<div class="dashboard-container">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h3>My Tasks</h3>
+    </div>
+    <ul class="sidebar-menu">
+      <li [class.active]="currentFilter === 'all'" (click)="setFilter('all')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+        All Tasks
+      </li>
+      <li [class.active]="currentFilter === 'pending'" (click)="setFilter('pending')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        Pending ({{pendingTasks.length}})
+      </li>
+      <li [class.active]="currentFilter === 'completed'" (click)="setFilter('completed')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        Completed ({{completedTasks.length}})
+      </li>
+    </ul>
+  </aside>
+
+  <main class="main-content">
+    <header class="dashboard-header">
+      <h2>Good to see you!</h2>
+      <p>Here's what you need to do today.</p>
+    </header>
+
+    <div *ngIf="error" class="error-banner">
+      {{error}}
+    </div>
+
+    <section class="task-creation-section">
+      <div class="card glass-card new-task-card">
+        <form (submit)="addTask($event)">
+          <div class="input-group">
+            <input type="text" [(ngModel)]="newTaskTitle" name="title" placeholder="What needs to be done?" autocomplete="off" required>
+          </div>
+          <div class="input-group">
+            <input type="text" [(ngModel)]="newTaskDescription" name="description" placeholder="Description (optional)" autocomplete="off">
+          </div>
+          <button type="submit" class="btn btn-primary" [disabled]="!newTaskTitle.trim()">Add Task</button>
+        </form>
+      </div>
+    </section>
+
+    <section class="tasks-section" *ngIf="!isLoading">
+      
+      <div class="task-list" *ngIf="(currentFilter === 'all' || currentFilter === 'pending') && pendingTasks.length > 0">
+        <h3 class="section-title">In Progress</h3>
+        <div class="card task-card" *ngFor="let task of pendingTasks">
+          <label class="custom-checkbox">
+            <input type="checkbox" [checked]="task.status === 'completed'" (change)="toggleTaskStatus(task)">
+            <span class="checkmark"></span>
+          </label>
+          <div class="task-info">
+            <h4 class="task-title">{{task.title}}</h4>
+            <p class="task-desc" *ngIf="task.description">{{task.description}}</p>
+          </div>
+          <button class="delete-btn" (click)="deleteTask(task._id)" aria-label="Delete task">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="task-list completed-list" *ngIf="(currentFilter === 'all' || currentFilter === 'completed') && completedTasks.length > 0">
+        <h3 class="section-title">Completed</h3>
+        <div class="card task-card completed" *ngFor="let task of completedTasks">
+          <label class="custom-checkbox">
+            <input type="checkbox" [checked]="task.status === 'completed'" (change)="toggleTaskStatus(task)">
+            <span class="checkmark"></span>
+          </label>
+          <div class="task-info">
+            <h4 class="task-title">{{task.title}}</h4>
+            <p class="task-desc" *ngIf="task.description">{{task.description}}</p>
+          </div>
+          <button class="delete-btn" (click)="deleteTask(task._id)" aria-label="Delete task">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="empty-state" *ngIf="tasks.length === 0">
+        <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        <h3>All caught up!</h3>
+        <p>You have no tasks right now. Enjoy your day or add a new task above.</p>
+      </div>
+
+    </section>
+
+    <div class="loading-state" *ngIf="isLoading">
+      <div class="spinner"></div>
+      <p>Loading your tasks...</p>
+    </div>
+
+  </main>
+</div>
