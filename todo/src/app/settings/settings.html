@@ -1,0 +1,49 @@
+<div class="settings-container">
+  <div class="brutalist-card settings-card">
+    <div class="settings-header">
+      <h2>Account Settings</h2>
+      <p>Manage your personal information and preferences.</p>
+    </div>
+
+    <div class="loading-state" *ngIf="isLoading">
+      <div class="spinner"></div>
+      <p>Loading your profile...</p>
+    </div>
+
+    <div *ngIf="!isLoading">
+      <div class="alert success" *ngIf="successMessage">
+        {{ successMessage }}
+      </div>
+      <div class="alert error" *ngIf="errorMessage">
+        {{ errorMessage }}
+      </div>
+
+      <form (submit)="saveProfile($event)" class="settings-form">
+        
+        <div class="form-group">
+          <label>Full Name</label>
+          <input type="text" class="brutalist-input" [(ngModel)]="user.name" name="name" required>
+        </div>
+
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" class="brutalist-input" [(ngModel)]="user.email" name="email" required>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="brutalist-btn brutalist-btn-primary" [disabled]="isSaving">
+            {{ isSaving ? 'Saving...' : 'Save Changes' }}
+          </button>
+        </div>
+      </form>
+      
+      <div class="danger-zone">
+        <h3>Danger Zone</h3>
+        <p>Once you delete your account, there is no going back. Please be certain.</p>
+        <button class="brutalist-btn btn-danger" (click)="errorMessage = 'Account deletion is disabled in this demo.'">
+          Delete Account
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

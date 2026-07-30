@@ -1,12 +1,15 @@
 import { Injectable, signal } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
 })
 export class Auth {
   isLoggedIn = signal(false);
+  private apiUrl = 'http://localhost:5000/api/auth';
 
-  constructor() {
+  constructor(private http: HttpClient) {
     this.checkToken();
   }
 
@@ -29,5 +32,24 @@ export class Auth {
       localStorage.removeItem('token');
     }
     this.isLoggedIn.set(false);
+  }
+
+  private getHeaders(): HttpHeaders {
+    let headers = new HttpHeaders();
+    if (typeof localStorage !== 'undefined') {
+      const token = localStorage.getItem('token');
+      if (token) {
+        headers = headers.set('Authorization', `Bearer ${token}`);
+      }
+    }
+    return headers;
+  }
+
+  getProfile(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/profile`, { headers: this.getHeaders() });
+  }
+
+  updateProfile(data: any): Observable<any> {
+    return this.http.put(`${this.apiUrl}/profile`, data, { headers: this.getHeaders() });
   }
 }

@@ -4,6 +4,7 @@ import { About } from './about/about';
 import { Register } from './register/register';
 import { Login } from './login/login';
 import { Dashboard } from './dashboard/dashboard';
+import { Settings } from './settings/settings';
 import { authGuard } from './services/auth.guard';
 
 export const routes: Routes = [
@@ -13,4 +14,5 @@ export const routes: Routes = [
     { path: 'register', component: Register },
     { path: 'login', component: Login },
     { path: 'dashboard', component: Dashboard, canActivate: [authGuard] },
+    { path: 'settings', component: Settings, canActivate: [authGuard] },
 ];

@@ -1,0 +1,135 @@
+.settings-container {
+    min-height: calc(100vh - 70px);
+    display: flex;
+    justify-content: center;
+    padding: 60px 20px;
+    background-color: var(--bg-primary);
+    background-image: radial-gradient(var(--text-secondary) 1px, transparent 1px);
+    background-size: 30px 30px;
+}
+
+.settings-card {
+    width: 100%;
+    max-width: 600px;
+    padding: 40px;
+    background: var(--card-bg);
+}
+
+.settings-header {
+    margin-bottom: 40px;
+    padding-bottom: 20px;
+    border-bottom: var(--border-width) solid var(--border-color);
+}
+
+.settings-header h2 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin: 0 0 10px 0;
+    text-transform: uppercase;
+    letter-spacing: -1px;
+}
+
+.settings-header p {
+    color: var(--text-secondary);
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.settings-form {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.form-group label {
+    font-weight: 800;
+    font-size: 1rem;
+    text-transform: uppercase;
+}
+
+.form-actions {
+    margin-top: 10px;
+}
+
+.alert {
+    padding: 15px 20px;
+    border: var(--border-width) solid var(--border-color);
+    box-shadow: 4px 4px 0px var(--border-color);
+    font-weight: 700;
+    margin-bottom: 30px;
+}
+
+.alert.success {
+    background: var(--secondary-color);
+    color: var(--text-primary);
+}
+
+.alert.error {
+    background: var(--danger-color);
+    color: white;
+}
+
+.danger-zone {
+    margin-top: 50px;
+    padding-top: 40px;
+    border-top: var(--border-width) dashed var(--border-color);
+}
+
+.danger-zone h3 {
+    color: var(--danger-color);
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin: 0 0 10px 0;
+    text-transform: uppercase;
+}
+
+.danger-zone p {
+    color: var(--text-secondary);
+    margin: 0 0 20px 0;
+    font-weight: 600;
+}
+
+.btn-danger {
+    background: var(--danger-color);
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #000;
+    color: white;
+}
+
+.loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 0;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 5px solid var(--text-secondary);
+    border-left-color: var(--text-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 15px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@media (max-width: 600px) {
+    .settings-card { padding: 30px 20px; }
+    .settings-header h2 { font-size: 2rem; }
+}
