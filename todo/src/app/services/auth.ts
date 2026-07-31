@@ -53,4 +53,8 @@ export class Auth {
   updateProfile(data: any): Observable<any> {
     return this.http.put(`${this.apiUrl}/profile`, data, { headers: this.getHeaders() });
   }
+
+  deleteAccount(): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/profile`, { headers: this.getHeaders() });
+  }
 }

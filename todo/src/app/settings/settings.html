@@ -40,8 +40,31 @@
       <div class="danger-zone">
         <h3>Danger Zone</h3>
         <p>Once you delete your account, there is no going back. Please be certain.</p>
-        <button class="brutalist-btn btn-danger" (click)="errorMessage = 'Account deletion is disabled in this demo.'">
+        <button class="brutalist-btn btn-danger" (click)="deleteAccount()">
           Delete Account
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal-overlay" *ngIf="showDeleteModal" (click)="cancelDelete()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+          <line x1="12" y1="9" x2="12" y2="13"></line>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg>
+      </div>
+      <h3>Delete Your Account?</h3>
+      <p>This action is <strong>permanent and irreversible</strong>. All your tasks and personal data will be erased immediately.</p>
+      <div class="modal-actions">
+        <button class="brutalist-btn btn-danger" (click)="confirmDelete()" [disabled]="isDeleting">
+          {{ isDeleting ? 'Deleting...' : 'Yes, Delete My Account' }}
+        </button>
+        <button class="brutalist-btn brutalist-btn-secondary" (click)="cancelDelete()" [disabled]="isDeleting">
+          Cancel
         </button>
       </div>
     </div>

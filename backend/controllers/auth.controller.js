@@ -1,4 +1,5 @@
 const User = require("../models/user.model");
+const Task = require("../models/task.model");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
@@ -111,9 +112,29 @@ const updateProfile = async (req, res) => {
     }
 };
 
+const deleteAccount = async (req, res) => {
+    try {
+        const user = await User.findById(req.userId);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        // Delete all tasks belonging to the user
+        await Task.deleteMany({ user: req.userId });
+
+        // Delete the user account
+        await user.deleteOne();
+
+        res.status(200).json({ message: "Account deleted successfully" });
+    } catch (error) {
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
+};
+
 module.exports = {
     register,
     login,
     getProfile,
-    updateProfile
+    updateProfile,
+    deleteAccount
 };

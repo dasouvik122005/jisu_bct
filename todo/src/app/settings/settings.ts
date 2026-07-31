@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { Auth } from '../services/auth';
 
 @Component({
@@ -14,10 +15,12 @@ export class Settings implements OnInit {
   user: any = { name: '', email: '' };
   isLoading = true;
   isSaving = false;
+  isDeleting = false;
+  showDeleteModal = false;
   successMessage = '';
   errorMessage = '';
 
-  constructor(private authService: Auth) {}
+  constructor(private authService: Auth, private router: Router) {}
 
   ngOnInit() {
     this.loadProfile();
@@ -60,6 +63,34 @@ export class Settings implements OnInit {
       error: (err) => {
         this.isSaving = false;
         this.errorMessage = err.error?.message || 'Failed to update profile.';
+        console.error(err);
+      }
+    });
+  }
+
+  deleteAccount() {
+    this.showDeleteModal = true;
+  }
+
+  cancelDelete() {
+    this.showDeleteModal = false;
+  }
+
+  confirmDelete() {
+    this.isDeleting = true;
+    this.errorMessage = '';
+
+    this.authService.deleteAccount().subscribe({
+      next: () => {
+        this.isDeleting = false;
+        this.showDeleteModal = false;
+        this.authService.logout();
+        this.router.navigate(['/home']);
+      },
+      error: (err) => {
+        this.isDeleting = false;
+        this.showDeleteModal = false;
+        this.errorMessage = err.error?.message || 'Failed to delete account. Please try again.';
         console.error(err);
       }
     });
