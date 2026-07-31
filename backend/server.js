@@ -7,14 +7,24 @@ const connectDB = require("./config/db");
 // Load environment variables first
 dotenv.config();
 
-// Connect to MongoDB
-connectDB();
+// Connect to MongoDB is handled dynamically in middleware for serverless compatibility
+// connectDB();
 
 const app = express();
 
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// DB Connection Middleware (Guarantees DB is connected before routing)
+app.use(async (req, res, next) => {
+    try {
+        await connectDB();
+        next();
+    } catch (error) {
+        res.status(500).json({ message: "Database connection failed", error: error.message });
+    }
+});
 
 const authRoutes = require("./routes/auth.routes");
 const taskRoutes = require("./routes/task.routes");
