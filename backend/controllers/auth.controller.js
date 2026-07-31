@@ -5,7 +5,8 @@ const jwt = require("jsonwebtoken");
 
 const register = async (req, res) => {
     try {
-        const { name, email, password } = req.body;
+        let { name, email, password } = req.body;
+        email = email.toLowerCase().trim();
 
         const existingUser = await User.findOne({ email });
 
@@ -39,7 +40,8 @@ const register = async (req, res) => {
 
 const login = async (req, res) => {
     try {
-        const { email, password } = req.body;
+        let { email, password } = req.body;
+        email = email.toLowerCase().trim();
 
         const user = await User.findOne({ email });
 
@@ -59,7 +61,7 @@ const login = async (req, res) => {
 
         const token = jwt.sign(
             { userId: user._id },
-            process.env.JWT_SECRET,
+            process.env.JWT_SECRET || 'fallback_secret_key_12345',
             { expiresIn: "1h" }
         );
 
