@@ -2,11 +2,12 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TaskService } from '../services/task';
+import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, DragDropModule],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css'
 })
@@ -25,6 +26,14 @@ export class Dashboard implements OnInit {
   
   currentFilter: 'all' | 'pending' | 'completed' = 'all';
 
+  // Pagination & Analytics State
+  currentPage = 1;
+  limit = 10;
+  totalPages = 1;
+  totalTasks = 0;
+  totalCompleted = 0;
+  isLoadingMore = false;
+
   constructor(private taskService: TaskService) {}
 
   setFilter(filter: 'all' | 'pending' | 'completed') {
@@ -35,19 +44,51 @@ export class Dashboard implements OnInit {
     this.loadTasks();
   }
 
-  loadTasks() {
-    this.isLoading = true;
-    this.taskService.getTasks().subscribe({
-      next: (data) => {
-        this.tasks = data;
+  loadTasks(isLoadMore = false) {
+    if (!isLoadMore) {
+      this.isLoading = true;
+      this.currentPage = 1;
+    } else {
+      this.isLoadingMore = true;
+      this.currentPage++;
+    }
+
+    this.taskService.getTasks(this.currentPage, this.limit).subscribe({
+      next: (data: any) => {
+        if (isLoadMore) {
+          this.tasks = [...this.tasks, ...data.tasks];
+        } else {
+          this.tasks = data.tasks;
+        }
+        this.totalTasks = data.total;
+        this.totalCompleted = data.totalCompleted;
+        this.totalPages = data.pages;
+        
         this.isLoading = false;
+        this.isLoadingMore = false;
       },
       error: (err) => {
         this.error = 'Failed to load tasks.';
         this.isLoading = false;
+        this.isLoadingMore = false;
         console.error(err);
       }
     });
+  }
+
+  loadMore() {
+    if (this.currentPage < this.totalPages) {
+      this.loadTasks(true);
+    }
+  }
+
+  get analytics() {
+    const total = this.totalTasks;
+    const completed = this.totalCompleted;
+    const pending = total - completed;
+    const percentage = total === 0 ? 0 : Math.round((completed / total) * 100);
+
+    return { total, completed, pending, percentage };
   }
 
   addTask(event: Event) {
@@ -84,11 +125,23 @@ export class Dashboard implements OnInit {
     
     // Optimistic update
     task.status = updatedStatus;
+    
+    // Update local analytics optimism
+    if (updatedStatus === 'completed') {
+      this.totalCompleted++;
+    } else {
+      this.totalCompleted--;
+    }
 
     this.taskService.updateTask(task._id, { status: updatedStatus }).subscribe({
       error: (err) => {
         // Revert on error
         task.status = task.status === 'completed' ? 'pending' : 'completed';
+        if (task.status === 'completed') {
+          this.totalCompleted++;
+        } else {
+          this.totalCompleted--;
+        }
         this.error = 'Failed to update task.';
         console.error(err);
       }
@@ -113,13 +166,36 @@ export class Dashboard implements OnInit {
   // Editing state
   editingTaskId: string | null = null;
   editTaskData: any = {};
+  newSubtaskTitle = '';
 
   startEdit(task: any) {
     this.editingTaskId = task._id;
-    this.editTaskData = { ...task };
+    this.editTaskData = JSON.parse(JSON.stringify(task)); // Deep copy to avoid reference issues
+    if (!this.editTaskData.subtasks) {
+      this.editTaskData.subtasks = [];
+    }
     if (this.editTaskData.dueDate) {
       this.editTaskData.dueDate = new Date(this.editTaskData.dueDate).toISOString().split('T')[0];
     }
+  }
+
+  // Subtask logic
+  addSubtask() {
+    if (this.newSubtaskTitle.trim()) {
+      this.editTaskData.subtasks.push({
+        title: this.newSubtaskTitle,
+        completed: false
+      });
+      this.newSubtaskTitle = '';
+    }
+  }
+
+  removeSubtask(index: number) {
+    this.editTaskData.subtasks.splice(index, 1);
+  }
+
+  toggleSubtask(subtask: any) {
+    subtask.completed = !subtask.completed;
   }
 
   saveEdit(task: any) {
@@ -138,6 +214,7 @@ export class Dashboard implements OnInit {
 
   cancelEdit() {
     this.editingTaskId = null;
+    this.newSubtaskTitle = '';
   }
 
   get filteredAndSortedTasks() {
@@ -184,5 +261,35 @@ export class Dashboard implements OnInit {
 
   get completedTasks() {
     return this.filteredAndSortedTasks.filter(t => t.status === 'completed');
+  }
+
+  // Drag and Drop
+  drop(event: CdkDragDrop<any[]>) {
+    // Determine which list is currently visible and being reordered
+    let currentTasksArray = this.currentFilter === 'completed' ? this.completedTasks : this.pendingTasks;
+    
+    // Perform local reorder
+    moveItemInArray(currentTasksArray, event.previousIndex, event.currentIndex);
+
+    // Update the 'order' field based on new indices
+    currentTasksArray.forEach((task, index) => {
+      task.order = index;
+    });
+
+    // Prepare payload for backend
+    const reorderPayload = currentTasksArray.map(t => ({
+      id: t._id,
+      order: t.order
+    }));
+
+    // Send to backend
+    this.taskService.reorderTasks(reorderPayload).subscribe({
+      error: (err) => {
+        this.error = 'Failed to save new order.';
+        console.error(err);
+        // On error, reload to get correct order from DB
+        this.loadTasks();
+      }
+    });
   }
 }

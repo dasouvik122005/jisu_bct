@@ -45,6 +45,30 @@
       {{error}}
     </div>
 
+    <!-- Analytics Banner -->
+    <section class="analytics-banner card glass-card" *ngIf="!isLoading && totalTasks > 0">
+      <div class="analytics-stats">
+        <div class="stat-box">
+          <span class="stat-value">{{ analytics.total }}</span>
+          <span class="stat-label">Total Tasks</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-value text-success">{{ analytics.completed }}</span>
+          <span class="stat-label">Completed</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-value text-warning">{{ analytics.pending }}</span>
+          <span class="stat-label">Pending</span>
+        </div>
+      </div>
+      <div class="analytics-progress">
+        <div class="progress-bar-container">
+          <div class="progress-bar" [style.width]="analytics.percentage + '%'"></div>
+        </div>
+        <span class="progress-text">{{ analytics.percentage }}% Completed</span>
+      </div>
+    </section>
+
     <section class="task-creation-section">
       <div class="card glass-card new-task-card">
         <form (submit)="addTask($event)">
@@ -80,7 +104,12 @@
       <div class="task-list" *ngIf="(currentFilter === 'all' || currentFilter === 'pending') && pendingTasks.length > 0">
         <h3 class="section-title">In Progress</h3>
         
-        <div class="card task-card" *ngFor="let task of pendingTasks" [ngClass]="'priority-' + task.priority">
+        <div cdkDropList (cdkDropListDropped)="drop($event)" class="drag-drop-list">
+          <div class="card task-card drag-box" *ngFor="let task of pendingTasks" [ngClass]="'priority-' + task.priority" cdkDrag>
+            <!-- Drag Handle -->
+            <div class="drag-handle" cdkDragHandle *ngIf="editingTaskId !== task._id">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="12" r="1"></circle><circle cx="9" cy="5" r="1"></circle><circle cx="9" cy="19" r="1"></circle><circle cx="15" cy="12" r="1"></circle><circle cx="15" cy="5" r="1"></circle><circle cx="15" cy="19" r="1"></circle></svg>
+            </div>
           <!-- VIEW MODE -->
           <ng-container *ngIf="editingTaskId !== task._id">
             <label class="custom-checkbox">
@@ -91,6 +120,10 @@
               <div class="task-header-row">
                 <h4 class="task-title">{{task.title}}</h4>
                 <div class="task-badges">
+                  <span class="badge badge-subtasks" *ngIf="task.subtasks && task.subtasks.length > 0">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                    {{ task.subtasks.length }}
+                  </span>
                   <span class="badge badge-category">{{task.category}}</span>
                   <span class="badge badge-priority" [ngClass]="task.priority">{{task.priority}}</span>
                   <span class="badge badge-date" *ngIf="task.dueDate">
@@ -100,6 +133,15 @@
                 </div>
               </div>
               <p class="task-desc" *ngIf="task.description">{{task.description}}</p>
+              
+              <!-- View Mode Subtasks -->
+              <div class="subtask-list-view" *ngIf="task.subtasks && task.subtasks.length > 0">
+                <div class="subtask-item-view" *ngFor="let subtask of task.subtasks" [class.completed]="subtask.completed">
+                  <svg *ngIf="subtask.completed" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-success"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                  <svg *ngIf="!subtask.completed" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-muted"><circle cx="12" cy="12" r="10"></circle></svg>
+                  <span>{{subtask.title}}</span>
+                </div>
+              </div>
             </div>
             <div class="task-actions">
               <button class="icon-btn edit-btn" (click)="startEdit(task)" aria-label="Edit task">
@@ -130,20 +172,47 @@
                 </select>
                 <input type="date" [(ngModel)]="editTaskData.dueDate" class="brutalist-input">
               </div>
+
+              <!-- Edit Mode Subtasks -->
+              <div class="edit-subtasks">
+                <h5>Subtasks</h5>
+                <div class="subtask-list">
+                  <div class="subtask-edit-item" *ngFor="let subtask of editTaskData.subtasks; let i = index">
+                    <label class="custom-checkbox small">
+                      <input type="checkbox" [checked]="subtask.completed" (change)="toggleSubtask(subtask)">
+                      <span class="checkmark"></span>
+                    </label>
+                    <input type="text" [(ngModel)]="subtask.title" class="brutalist-input subtask-input" [class.completed-text]="subtask.completed">
+                    <button class="icon-btn delete-btn sm" (click)="removeSubtask(i)" aria-label="Remove subtask">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                  </div>
+                </div>
+                <div class="add-subtask-row">
+                  <input type="text" [(ngModel)]="newSubtaskTitle" class="brutalist-input" placeholder="Add a subtask..." (keyup.enter)="addSubtask()">
+                  <button class="btn btn-secondary btn-sm" (click)="addSubtask()">Add</button>
+                </div>
+              </div>
+
               <div class="edit-actions">
                 <button class="btn btn-primary btn-sm" (click)="saveEdit(task)">Save</button>
                 <button class="btn btn-secondary btn-sm" (click)="cancelEdit()">Cancel</button>
               </div>
             </div>
           </ng-container>
+          </div>
         </div>
       </div>
 
       <!-- COMPLETED TASKS -->
       <div class="task-list completed-list" *ngIf="(currentFilter === 'all' || currentFilter === 'completed') && completedTasks.length > 0">
         <h3 class="section-title">Completed</h3>
-        <div class="card task-card completed" *ngFor="let task of completedTasks">
-          <label class="custom-checkbox">
+        <div cdkDropList (cdkDropListDropped)="drop($event)" class="drag-drop-list">
+          <div class="card task-card completed drag-box" *ngFor="let task of completedTasks" cdkDrag>
+            <div class="drag-handle" cdkDragHandle>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="12" r="1"></circle><circle cx="9" cy="5" r="1"></circle><circle cx="9" cy="19" r="1"></circle><circle cx="15" cy="12" r="1"></circle><circle cx="15" cy="5" r="1"></circle><circle cx="15" cy="19" r="1"></circle></svg>
+            </div>
+            <label class="custom-checkbox">
             <input type="checkbox" [checked]="task.status === 'completed'" (change)="toggleTaskStatus(task)">
             <span class="checkmark"></span>
           </label>
@@ -158,6 +227,7 @@
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
             </button>
           </div>
+          </div>
         </div>
       </div>
 
@@ -165,6 +235,12 @@
         <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
         <h3>All caught up!</h3>
         <p>You have no tasks right now. Try adding a priority task above.</p>
+      </div>
+
+      <div class="load-more-container" *ngIf="currentPage < totalPages">
+        <button class="btn btn-secondary load-more-btn" (click)="loadMore()" [disabled]="isLoadingMore">
+          {{ isLoadingMore ? 'Loading...' : 'Load More' }}
+        </button>
       </div>
 
     </section>

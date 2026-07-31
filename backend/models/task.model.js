@@ -9,6 +9,14 @@ const taskSchema = new mongoose.Schema({
         type: String,
         default: '',
     },
+    subtasks: [{
+        title: { type: String, required: true },
+        completed: { type: Boolean, default: false }
+    }],
+    order: {
+        type: Number,
+        default: 0
+    },
     status: {
         type: String,
         enum: ['pending', 'in-progress', 'completed'],

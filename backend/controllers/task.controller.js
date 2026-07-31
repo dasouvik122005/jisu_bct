@@ -5,8 +5,29 @@ const Task = require('../models/task.model');
 // @access  Private
 const getTasks = async (req, res) => {
     try {
-        const tasks = await Task.find({ user: req.userId }).sort({ createdAt: -1 });
-        res.status(200).json(tasks);
+        const page = parseInt(req.query.page, 10) || 1;
+        const limit = parseInt(req.query.limit, 10) || 0; // 0 means no limit (all tasks)
+        const skip = (page - 1) * limit;
+
+        const query = { user: req.userId };
+        
+        let tasksQuery = Task.find(query).sort({ order: 1, createdAt: -1 });
+        
+        if (limit > 0) {
+            tasksQuery = tasksQuery.skip(skip).limit(limit);
+        }
+
+        const tasks = await tasksQuery;
+        const total = await Task.countDocuments(query);
+        const totalCompleted = await Task.countDocuments({ ...query, status: 'completed' });
+
+        res.status(200).json({
+            tasks,
+            total,
+            totalCompleted,
+            page,
+            pages: limit > 0 ? Math.ceil(total / limit) : 1
+        });
     } catch (error) {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
@@ -90,9 +111,39 @@ const deleteTask = async (req, res) => {
     }
 };
 
+// @desc    Reorder tasks
+// @route   PUT /api/tasks/reorder
+// @access  Private
+const reorderTasks = async (req, res) => {
+    try {
+        const { tasks } = req.body; // Array of { id: string, order: number }
+        
+        if (!tasks || !Array.isArray(tasks)) {
+            return res.status(400).json({ message: 'Invalid payload. Expected tasks array.' });
+        }
+
+        // Use bulkWrite for efficient bulk updating
+        const bulkOps = tasks.map((t) => ({
+            updateOne: {
+                filter: { _id: t.id, user: req.userId }, // Ensure they only update their own tasks
+                update: { order: t.order }
+            }
+        }));
+
+        if (bulkOps.length > 0) {
+            await Task.bulkWrite(bulkOps);
+        }
+
+        res.status(200).json({ message: 'Tasks reordered successfully' });
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+}
+
 module.exports = {
     getTasks,
     createTask,
     updateTask,
     deleteTask,
+    reorderTasks
 };
