@@ -30,16 +30,16 @@
 - **Route Guards** — Protected client-side routes using Angular's `canActivate` guards.
 - **Protected API Endpoints** — All task-related API routes require a valid Bearer token.
 
-### Task Management
+### Task Management & Productivity
 - **Full CRUD Operations** — Create, read, update, and delete tasks seamlessly.
-- **Priority Levels** — Assign `Low`, `Medium`, or `High` priority to each task.
-- **Categories** — Organize tasks under `General`, `Work`, `Personal`, or `Shopping`.
-- **Due Dates** — Set optional deadlines with a date picker.
+- **Subtasks (Checklists)** — Break down complex tasks into manageable sub-items.
+- **Drag-and-Drop Reordering** — Take full control of task priority visually using Angular CDK.
+- **Dashboard Analytics** — Real-time productivity banner displaying total, completed, pending counts, and completion percentage.
+- **Pagination (Infinite Scroll)** — Efficiently loads tasks in batches of 10 with a "Load More" action for high performance.
+- **Priority Levels & Categories** — Categorize tasks and assign `Low`, `Medium`, or `High` priority.
 - **Status Tracking** — Toggle tasks between `Pending` and `Completed` states.
-- **Inline Editing** — Edit task details directly within the dashboard without navigation.
-- **Search** — Quickly find tasks using the real-time search bar.
-- **Sorting** — Sort tasks by creation date, due date, or priority.
-- **Filtering** — View all tasks, only pending, or only completed tasks via the sidebar.
+- **Inline Editing** — Edit task details and subtasks directly within the dashboard.
+- **Search & Filtering** — Quickly find tasks using real-time search and status filters.
 
 ### User Experience
 - **Dark / Light Theme Toggle** — Switch between dark and light modes on the fly.
@@ -56,6 +56,7 @@
 | Technology | Version | Purpose |
 |---|---|---|
 | [Angular](https://angular.dev/) | 21.x | Component-based SPA framework |
+| [Angular CDK](https://material.angular.io/cdk/categories) | 21.x | Component Dev Kit (Drag & Drop) |
 | [TypeScript](https://www.typescriptlang.org/) | 5.9 | Type-safe JavaScript superset |
 | [RxJS](https://rxjs.dev/) | 7.8 | Reactive programming for HTTP & async flows |
 | [Angular SSR](https://angular.dev/guide/ssr) | 21.x | Server-side rendering |
@@ -264,9 +265,10 @@ Content-Type: application/json
 
 | Method | Endpoint | Access | Description |
 |---|---|---|---|
-| `GET` | `/api/tasks` | Protected | Get all tasks for the authenticated user |
+| `GET` | `/api/tasks` | Protected | Get tasks with pagination (Query: `?page=1&limit=10`) |
 | `POST` | `/api/tasks` | Protected | Create a new task |
-| `PUT` | `/api/tasks/:id` | Protected | Update a task by ID |
+| `PUT` | `/api/tasks/reorder` | Protected | Bulk update task order via drag-and-drop |
+| `PUT` | `/api/tasks/:id` | Protected | Update a task (including subtasks) by ID |
 | `DELETE` | `/api/tasks/:id` | Protected | Delete a task by ID |
 
 #### Create Task
@@ -305,6 +307,8 @@ Content-Type: application/json
 |---|---|---|---|---|
 | `title` | String | ✅ | — | Task title |
 | `description` | String | ❌ | `""` | Optional task description |
+| `subtasks` | Array | ❌ | `[]` | Array of `{ title: String, completed: Boolean }` |
+| `order` | Number | ❌ | `0` | Sort index for drag-and-drop |
 | `status` | String | ❌ | `pending` | One of: `pending`, `in-progress`, `completed` |
 | `priority` | String | ❌ | `medium` | One of: `low`, `medium`, `high` |
 | `category` | String | ❌ | `General` | Task category label |
